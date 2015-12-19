@@ -90,13 +90,16 @@ class Maze:
 			plt.arrow(x[i], y[i], x[i+1]-x[i], y[i+1]-y[i], color=color, \
 				length_includes_head=True, head_width=0.1)
 
-	def solve(self, start, end):
+	def solve(self, start, end, filename=None):
+		fig = plt.figure()
 		self.plot('b')
 		G = m.get_graph()
 		path = nx.shortest_path(G, start, end)
 		print(path)
 		self.plot_path(path, 'r')
 		plt.show()
+		if filename is not None:
+			fig.savefig(filename, dpi=200)
 
 
 
@@ -114,4 +117,4 @@ end = int(endstr.strip())
 
 m = Maze()
 m.load_from_file(basename)
-m.solve(start, end)
+m.solve(start, end, basename + '_result.png')
