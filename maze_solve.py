@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
+import sys
 
 
 
@@ -89,16 +90,28 @@ class Maze:
 			plt.arrow(x[i], y[i], x[i+1]-x[i], y[i+1]-y[i], color=color, \
 				length_includes_head=True, head_width=0.1)
 
-	def solve(self):
-		m.plot('b')
+	def solve(self, start, end):
+		self.plot('b')
 		G = m.get_graph()
-		path = nx.shortest_path(G, 0, 31)
+		path = nx.shortest_path(G, start, end)
 		print(path)
-		m.plot_path(path, 'r')
+		self.plot_path(path, 'r')
 		plt.show()
 
 
 
+if not len(sys.argv) == 2:
+	print('Usage: {0} <basename of maze files>'.format(sys.argv[0]))
+	sys.exit()
+basename = sys.argv[1]
+
+f = open(basename + '.startend')
+startendstr = f.read()
+f.close()
+startstr, endstr = startendstr.split(',')
+start = int(startstr.strip())
+end = int(endstr.strip())
+
 m = Maze()
-m.load_from_file('simple')
-m.solve()
+m.load_from_file(basename)
+m.solve(start, end)
