@@ -33,8 +33,8 @@ def get_minimums(v, threshold):
 	i1 = np.concatenate([np.zeros(1), d + 1])
 	i2 = np.concatenate([d, [len(i0)-1]])
 	return [ np.argmin(v[i0[i1[i]]:i0[i2[i]]+1]) + i0[i1[i]] for i in range(len(i1)) ]
-row_thresh = 220.0
-col_thresh = 220.0
+row_thresh = 215.0
+col_thresh = 215.0
 row_min = get_minimums(rowavrg, row_thresh)
 col_min = get_minimums(colavrg, col_thresh)
 # Number of fields
@@ -63,6 +63,16 @@ if verbose:
 	ax[1].set_ylim([0, 256])
 	plt.show()
 
+def rectangle_full(pix, cx, cy, dx, dy):
+	threshold = 128
+	mincount = ((2 * dx + 1) * (2 * dy + 1)) / 3
+	count = 0
+	for x in range(cx - dx, cx + dx + 1):
+		for y in range(cy - dy, cy + dy + 1):
+			if pix[x, y] < threshold:
+				count += 1
+	return count >= mincount
+
 if verbose:
 	def draw_rectangle(pix, cx, cy, dx, dy, color):
 		for x in range(cx - dx, cx + dx + 1):
@@ -76,26 +86,25 @@ if verbose:
 	# Plot grid points
 	for y in row_min:
 		for x in col_min:
-			cpix[x, y] = (255, 0, 0, 255) # Red
+			cpix[x, y] = (0, 0, 255, 255) # Blue
 	# Plot sample areas for vertical walls
 	for y in [ (row_min[i] + row_min[i+1]) / 2.0 for i in range(len(row_min)-1) ]:
 		for x in col_min:
-			draw_rectangle(cpix, int(round(x)), int(round(y)), sx + 1, sy + 1, (0, 255, 0, 255)) # Green
+			if rectangle_full(bwpix, int(round(x)), int(round(y)), sx, sy):
+				draw_rectangle(cpix, int(round(x)), int(round(y)), sx + 1, sy + 1, (255, 0, 0, 255)) # Red
+			else:
+				draw_rectangle(cpix, int(round(x)), int(round(y)), sx + 1, sy + 1, (0, 255, 0, 255)) # Green
 	# Plot sample areas for horizontal walls
 	for y in row_min:
 		for x in [ (col_min[i] + col_min[i+1]) / 2.0 for i in range(len(col_min)-1) ]:
-			draw_rectangle(cpix, int(round(x)), int(round(y)), sx + 1, sy + 1, (0, 0, 255, 255)) # Blue
-	cimage.save(basename + '_debug.png')
+			if rectangle_full(bwpix, int(round(x)), int(round(y)), sx, sy):
+				draw_rectangle(cpix, int(round(x)), int(round(y)), sx + 1, sy + 1, (255, 0, 0, 255)) # Red
+			else:
+				draw_rectangle(cpix, int(round(x)), int(round(y)), sx + 1, sy + 1, (0, 255, 0, 255)) # Green
+	plt.imshow(cimage)
+	plt.show()
+	#cimage.save(basename + '_debug.png')
 
-def rectangle_full(pix, cx, cy, dx, dy):
-	threshold = 128
-	mincount = 5
-	count = 0
-	for x in range(cx - dx, cx + dx + 1):
-		for y in range(cy - dy, cy + dy + 1):
-			if pix[x, y] < threshold:
-				count += 1
-	return count >= mincount
 # Sample areas for vertical walls
 f = open(basename + '.v_walls', 'w')
 for y in [ (row_min[i] + row_min[i+1]) / 2.0 for i in range(len(row_min)-1) ]:
